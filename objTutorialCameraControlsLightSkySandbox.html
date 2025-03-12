@@ -41,17 +41,50 @@
             }
         );
 
+
         // set camera constants
         const fov = 45;
         const aspect = 2; // the canvas default
         const near = 0.1;
         const far = 100;
+        const defaultCameraPosition = new THREE.Vector3(0, 10, 20);
         const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        camera.position.set(0, 10, 20);
+        camera.position.set(defaultCameraPosition.x, defaultCameraPosition.y, defaultCameraPosition.z);
+        
+        
 
-        // // set camera z position
-        // camera.position.z = 5;
-        // camera.position.y = 2;
+        // asteroids GUI
+        const gui = new GUI();
+        
+        const cameraFolder = gui.addFolder('Camera Positions');
+        
+        // Add a button to reset the camera to default position
+        cameraFolder.add({
+            resetCamera: function() {
+                camera.position.set(defaultCameraPosition.x, defaultCameraPosition.y, defaultCameraPosition.z);
+                camera.lookAt(orbitLookAt.x, orbitLookAt.y, orbitLookAt.z);
+            }
+        }, 'resetCamera').name('Camera Position 1');
+
+        // Add a button to reset the camera to default position
+        cameraFolder.add({
+            cameraPos2: function() {
+                camera.position.set(defaultCameraPosition.x, defaultCameraPosition.y, defaultCameraPosition.z - 1);
+            }
+        }, 'cameraPos2').name('Camera Position 2');
+
+
+        const audio = new Audio('resources/audio/spaceship-ambience-with-effects-21420.mp3');
+
+        // Play the audio
+        audio.play();
+        audio.volume = 0.5;
+        audio.loop = true;
+
+        const audioFolder = gui.addFolder('Audio');
+        
+        // Add a button to reset the camera to default position
+        audioFolder.add(audio, 'volume', 0, 1, 0.1).name('Volume');
 
         // scene plane
         {
@@ -79,52 +112,190 @@
         }
 
         // make cube and sphere
-        {
+        // {
 
-            // Load each texture of PBR Material
-            const root_dir = 'resources/images/textureWDepthMap/ground_0010_1k_9fudJm/'
-            const colorMap = loader.load(root_dir + 'ground_0010_color_1k.jpg');
-            const aoMap = loader.load(root_dir + 'ground_0010_ao_1k.jpg');
-            const heightMap = loader.load(root_dir + 'ground_0010_height_1k.png');
-            const normalMap = loader.load(root_dir + 'ground_0010_normal_opengl_1k.png');  // Choose one normal map
-            const roughnessMap = loader.load(root_dir + 'ground_0010_roughness_1k.jpg');
+            // // Load each texture of PBR Material
+            // const root_dir = 'resources/images/textureWDepthMap/ground_0010_1k_9fudJm/'
+            // const colorMap = loader.load(root_dir + 'ground_0010_color_1k.jpg');
+            // const aoMap = loader.load(root_dir + 'ground_0010_ao_1k.jpg');
+            // const heightMap = loader.load(root_dir + 'ground_0010_height_1k.png');
+            // const normalMap = loader.load(root_dir + 'ground_0010_normal_opengl_1k.png');  // Choose one normal map
+            // const roughnessMap = loader.load(root_dir + 'ground_0010_roughness_1k.jpg');
 
-            // Optional: Set color space for color map
-            colorMap.colorSpace = THREE.SRGBColorSpace;
+            // // Optional: Set color space for color map
+            // colorMap.colorSpace = THREE.SRGBColorSpace;
 
-            colorMap.wrapS = THREE.RepeatWrapping;
-            colorMap.wrapT = THREE.RepeatWrapping;
-            colorMap.magFilter = THREE.NearestFilter;
+            // colorMap.wrapS = THREE.RepeatWrapping;
+            // colorMap.wrapT = THREE.RepeatWrapping;
+            // colorMap.magFilter = THREE.NearestFilter;
 
-            aoMap.wrapS = THREE.RepeatWrapping;
-            aoMap.wrapT = THREE.RepeatWrapping;
-            aoMap.magFilter = THREE.NearestFilter;
+            // aoMap.wrapS = THREE.RepeatWrapping;
+            // aoMap.wrapT = THREE.RepeatWrapping;
+            // aoMap.magFilter = THREE.NearestFilter;
 
-            heightMap.wrapS = THREE.RepeatWrapping;
-            heightMap.wrapT = THREE.RepeatWrapping;
-            heightMap.magFilter = THREE.NearestFilter;
+            // heightMap.wrapS = THREE.RepeatWrapping;
+            // heightMap.wrapT = THREE.RepeatWrapping;
+            // heightMap.magFilter = THREE.NearestFilter;
 
-            normalMap.wrapS = THREE.RepeatWrapping;
-            normalMap.wrapT = THREE.RepeatWrapping;
-            normalMap.magFilter = THREE.NearestFilter;
+            // normalMap.wrapS = THREE.RepeatWrapping;
+            // normalMap.wrapT = THREE.RepeatWrapping;
+            // normalMap.magFilter = THREE.NearestFilter;
 
-            roughnessMap.wrapS = THREE.RepeatWrapping;
-            roughnessMap.wrapT = THREE.RepeatWrapping;
-            roughnessMap.magFilter = THREE.NearestFilter;
+            // roughnessMap.wrapS = THREE.RepeatWrapping;
+            // roughnessMap.wrapT = THREE.RepeatWrapping;
+            // roughnessMap.magFilter = THREE.NearestFilter;
 
-            // asteroid material
-            const astMat = new THREE.MeshStandardMaterial({
-                map: colorMap,                // Base color map
-                aoMap: aoMap,                 // Ambient occlusion map
-                displacementMap: heightMap,   // Height/Displacement map
-                displacementScale: 0.1,       // Controls height intensity
-                displacementBias: -0.05,
-                normalMap: normalMap,         // Normal map (surface details)
-                roughnessMap: roughnessMap,   // Roughness map (glossiness)
-                side: THREE.DoubleSide,       // Optional: Makes material visible on both sides
-            });
+            // // asteroid material
+            // const astMat = new THREE.MeshStandardMaterial({
+            //     map: colorMap,                // Base color map
+            //     aoMap: aoMap,                 // Ambient occlusion map
+            //     displacementMap: heightMap,   // Height/Displacement map
+            //     displacementScale: 0.1,       // Controls height intensity
+            //     displacementBias: -0.05,
+            //     normalMap: normalMap,         // Normal map (surface details)
+            //     roughnessMap: roughnessMap,   // Roughness map (glossiness)
+            //     side: THREE.DoubleSide,       // Optional: Makes material visible on both sides
+            // });
             
 
+            // // make cube
+            // const cubeSize = 2;
+            // const cubeSegments = 10;
+            // const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize, cubeSegments, cubeSegments, cubeSegments);
+
+            // // Add the uv2 attribute for AO maps
+            // cubeGeo.setAttribute('uv2', new THREE.BufferAttribute(cubeGeo.attributes.uv.array, 2));
+
+            // const mesh = new THREE.Mesh(cubeGeo, astMat);
+            // mesh.position.set(cubeSize + 1, cubeSize / 2, 0);
+            // scene.add(mesh);
+
+            // // make capsule
+            // const capLength = 0.5;
+            // const capRedius = 1;
+            // const capGeo = new THREE.CapsuleGeometry(capRedius, capLength);
+
+            // // Add the uv2 attribute for AO maps
+            // capGeo.setAttribute('uv2', new THREE.BufferAttribute(capGeo.attributes.uv.array, 2));
+
+            // const capMesh = new THREE.Mesh(capGeo, astMat);
+            // capMesh.position.set(0, capLength / 2 + 4, 0);
+            // scene.add(capMesh);
+
+            // // make torus know
+            // const torKnotRadius = 1;
+            // const torKnotTube = 0.4;
+            // const torKnotGeo = new THREE.TorusKnotGeometry(torKnotRadius, torKnotTube);
+            
+            // // Add the uv2 attribute for AO maps
+            // torKnotGeo.setAttribute('uv2', new THREE.BufferAttribute(torKnotGeo.attributes.uv.array, 2));
+
+            // // torAstMat Adjustments
+            // const torColorMap = colorMap.clone();
+            // torColorMap.repeat.set(10, 1); 
+            // const torAoMap = aoMap.clone();
+            // torAoMap.repeat.set(10, 1); 
+            // const torHeightMap = heightMap.clone();
+            // torHeightMap.repeat.set(10, 1); 
+            // const torNormalMap = normalMap.clone();
+            // torNormalMap.repeat.set(10, 1); 
+            // const torRoughnessMap = roughnessMap.clone();
+            // torRoughnessMap.repeat.set(10, 1); 
+
+            // // asteroid material
+            // const astMatTor = new THREE.MeshStandardMaterial ({
+            //     map: torColorMap,                // Base color map
+            //     aoMap: torAoMap,                 // Ambient occlusion map
+            //     displacementMap: torHeightMap,   // Height/Displacement map
+            //     displacementScale: 0.2,       // Controls height intensity
+            //     // displacementBias: -0.05,
+            //     normalMap: torNormalMap,         // Normal map (surface details)
+            //     roughnessMap: torRoughnessMap,   // Roughness map (glossiness)
+            //     side: THREE.DoubleSide,       // Optional: Makes material visible on both sides
+            // });
+
+            // const torKnotMesh = new THREE.Mesh(torKnotGeo, astMatTor);
+            // torKnotMesh.position.set(0, torKnotRadius / 2 + 8, 0);
+            // scene.add(torKnotMesh);
+
+            // // make dodecahedron
+            // const dodRad = 1;
+            // const dodGeo = new THREE.DodecahedronGeometry(dodRad);
+            // const dodMesh = new THREE.Mesh(dodGeo, astMat);
+            // dodMesh.position.set(0, dodRad / 2 + 10, 0);
+            // scene.add(dodMesh);
+
+        // }
+
+
+        class Asteroid{
+            constructor(geometry, material, type){
+                this.geometry = geometry;
+                this.material = material;
+                this.rotationX =  Math.random() < 0.5 ? 1 : -1;
+                this.rotationY =  Math.random() < 0.5 ? 1 : -1;
+                this.rotationSpeed = Math.random() + 0.1;
+                this.type = type;
+                this.mesh = new THREE.Mesh(this.geometry, this.material);
+                scene.add(this.mesh);
+            }
+
+            // render(){
+            //     const mesh = new THREE.Mesh(this.geometry, this.material);
+            //     scene.add(mesh);
+            // }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                // Get a random index
+                const j = Math.floor(Math.random() * (i + 1));
+
+                // Swap elements at i and j
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        class ObjectPool {
+            constructor(createFns, mat, size=10){
+                this.pool = [];
+                this.mat = mat;
+                this.createFns = createFns;
+
+                for (let i = 0; i < this.createFns.length; i++){
+                    for (let j = 0; j < size; j++){
+                        const obj = createFns[i](this.mat);
+                        obj.mesh.visible = false;
+                        this.pool.push(obj);
+                    }
+                }
+
+                shuffleArray(this.pool);
+        
+            }
+
+            get() {
+                for (const obj of this.pool) {
+                    if (!obj.mesh.visible) {
+                        obj.mesh.visible = true;
+                        return obj;
+                    }
+                }
+
+                const randomIndex = Math.floor(Math.random() * this.createFns.length);
+                const newObj = this.createFns[randomIndex](this.mat);
+                newObj.mesh.visible = true;
+                this.pool.push(newObj);
+                return newObj;
+            }
+
+            release(obj){
+                obj.mesh.visible = false;
+            }
+        }
+
+        const createCube = (astMat) => {
             // make cube
             const cubeSize = 2;
             const cubeSegments = 10;
@@ -133,9 +304,12 @@
             // Add the uv2 attribute for AO maps
             cubeGeo.setAttribute('uv2', new THREE.BufferAttribute(cubeGeo.attributes.uv.array, 2));
 
-            const mesh = new THREE.Mesh(cubeGeo, astMat);
-            mesh.position.set(cubeSize + 1, cubeSize / 2, 0);
-            scene.add(mesh);
+            var ast = new Asteroid(cubeGeo, astMat, 'Cube');
+
+            return ast;
+        }
+
+        const createCapsule = (astMat) => {
 
             // make capsule
             const capLength = 0.5;
@@ -145,10 +319,26 @@
             // Add the uv2 attribute for AO maps
             capGeo.setAttribute('uv2', new THREE.BufferAttribute(capGeo.attributes.uv.array, 2));
 
-            const capMesh = new THREE.Mesh(capGeo, astMat);
-            capMesh.position.set(0, capLength / 2 + 4, 0);
-            scene.add(capMesh);
+            var ast = new Asteroid(capGeo, astMat, 'Capsule');
 
+            return ast;
+
+        }
+
+        const createDodecahedron = (astMat) => {
+            // make dodecahedron
+            const dodRad = 1;
+            const dodGeo = new THREE.DodecahedronGeometry(dodRad);
+
+            // Add the uv2 attribute for AO maps
+            dodGeo.setAttribute('uv2', new THREE.BufferAttribute(dodGeo.attributes.uv.array, 2));
+            
+            var ast = new Asteroid(dodGeo, astMat, 'Dodecahedron');
+
+            return ast;
+        }
+
+        const createTorusKnot = (astMat) => {
             // make torus know
             const torKnotRadius = 1;
             const torKnotTube = 0.4;
@@ -181,19 +371,59 @@
                 side: THREE.DoubleSide,       // Optional: Makes material visible on both sides
             });
 
-            const torKnotMesh = new THREE.Mesh(torKnotGeo, astMatTor);
-            torKnotMesh.position.set(0, torKnotRadius / 2 + 8, 0);
-            scene.add(torKnotMesh);
+            var ast = new Asteroid(torKnotGeo, astMatTor, 'Torus Knot');
 
-            // make dodecahedron
-            const dodRad = 1;
-            const dodGeo = new THREE.DodecahedronGeometry(dodRad);
-            const dodMesh = new THREE.Mesh(dodGeo, astMat);
-            dodMesh.position.set(0, dodRad / 2 + 10, 0);
-            scene.add(dodMesh);
-
-
+            return ast
         }
+
+
+        // Load each texture of PBR Material
+        const root_dir = 'resources/images/textureWDepthMap/ground_0010_1k_9fudJm/'
+        const colorMap = loader.load(root_dir + 'ground_0010_color_1k.jpg');
+        const aoMap = loader.load(root_dir + 'ground_0010_ao_1k.jpg');
+        const heightMap = loader.load(root_dir + 'ground_0010_height_1k.png');
+        const normalMap = loader.load(root_dir + 'ground_0010_normal_opengl_1k.png');  // Choose one normal map
+        const roughnessMap = loader.load(root_dir + 'ground_0010_roughness_1k.jpg');
+
+        // Optional: Set color space for color map
+        colorMap.colorSpace = THREE.SRGBColorSpace;
+
+        colorMap.wrapS = THREE.RepeatWrapping;
+        colorMap.wrapT = THREE.RepeatWrapping;
+        colorMap.magFilter = THREE.NearestFilter;
+
+        aoMap.wrapS = THREE.RepeatWrapping;
+        aoMap.wrapT = THREE.RepeatWrapping;
+        aoMap.magFilter = THREE.NearestFilter;
+
+        heightMap.wrapS = THREE.RepeatWrapping;
+        heightMap.wrapT = THREE.RepeatWrapping;
+        heightMap.magFilter = THREE.NearestFilter;
+
+        normalMap.wrapS = THREE.RepeatWrapping;
+        normalMap.wrapT = THREE.RepeatWrapping;
+        normalMap.magFilter = THREE.NearestFilter;
+
+        roughnessMap.wrapS = THREE.RepeatWrapping;
+        roughnessMap.wrapT = THREE.RepeatWrapping;
+        roughnessMap.magFilter = THREE.NearestFilter;
+
+        // asteroid material
+        const astMat = new THREE.MeshStandardMaterial({
+            map: colorMap,                // Base color map
+            aoMap: aoMap,                 // Ambient occlusion map
+            displacementMap: heightMap,   // Height/Displacement map
+            displacementScale: 0.1,       // Controls height intensity
+            displacementBias: -0.05,
+            normalMap: normalMap,         // Normal map (surface details)
+            roughnessMap: roughnessMap,   // Roughness map (glossiness)
+            side: THREE.DoubleSide,       // Optional: Makes material visible on both sides
+        });
+
+        const createFns = [createCube, createCapsule, createDodecahedron, createTorusKnot];
+        const asteroidPool = new ObjectPool(createFns, astMat);
+
+
 
         const suns = [];
 
@@ -229,7 +459,7 @@
                 // point light at the sphere's position
                 const color = 0xffff00;
                 const intensity = 150;
-                const dist = -1;
+                const dist = 0;
                 const pointLight = new THREE.PointLight(color, 150, dist);  // Color, intensity, distance
                 pointLight.position.set(mesh.position.x, mesh.position.y, mesh.position.z)
                 scene.add(pointLight);
@@ -290,8 +520,8 @@
         // Directional Light
         const orbitLookAt = new THREE.Vector3( 0, 5, 0 );
 
-        const color = 0xFFFFFF;
-        const intensity = 0.5;
+        const color = 0x87CEEB; //0xFFFFFF;
+        const intensity = 0.2;
         const light = new THREE.DirectionalLight(color, intensity);
         light.position.set(suns[0].position.x, suns[0].position.y, suns[0].position.z);
         light.target.position.set(orbitLookAt.x, orbitLookAt.y, orbitLookAt.z);
@@ -395,11 +625,11 @@
             }
         }
 
-        const gui = new GUI();
+        const miscFolder = gui.addFolder('Lighting Misc.');
 
         // ambient GUI
-        gui.addColor(new ColorGUIHelper(ambLight, 'color'), 'value').name('Ambient Color');
-        gui.add(ambLight, 'intensity', 0, 5, 0.01);
+        miscFolder.addColor(new ColorGUIHelper(ambLight, 'color'), 'value').name('Ambient Color');
+        miscFolder.add(ambLight, 'intensity', 0, 5, 0.01);
 
         // hemisphere GUI
         // gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('skyColor');
@@ -407,8 +637,8 @@
         // gui.add(light, 'intensity', 0, 5, 0.01);
 
         // directional GUI
-        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Directional Color');
-        gui.add(light, 'intensity', 0, 5, 0.01);
+        miscFolder.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Directional Color');
+        miscFolder.add(light, 'intensity', 0, 5, 0.01);
         // gui.add(light.target.position, 'x', -10, 10);
         // gui.add(light.target.position, 'z', -10, 10);
         // gui.add(light.target.position, 'y', 0, 10);
@@ -423,27 +653,29 @@
         spotFolder.add(new DegRadHelper(spotLight, 'angle'), 'value', 0, 90).name('angle').onChange(() => spotHelper.update());
         spotFolder.add(spotLight, 'penumbra', 0, 1, 0.01).onChange(() => spotHelper.update());
         spotFolder.add(spotLight, 'intensity', 0, 1000, 1).onChange(() => spotHelper.update());
-        spotFolder.add(spotLight.position, 'x', -10, 10).onChange(() => spotHelper.update());
-        spotFolder.add(spotLight.position, 'z', -10, 20).onChange(() => spotHelper.update());
-        spotFolder.add(spotLight.position, 'y', 0, 10).onChange(() => spotHelper.update());
-        spotFolder.add(spotLight.target.position, 'x', -10, 10).onChange(() => spotHelper.update());
-        spotFolder.add(spotLight.target.position, 'z', -10, 10).onChange(() => spotHelper.update());
-        spotFolder.add(spotLight.target.position, 'y', 0, 10).onChange(() => spotHelper.update());
+        spotFolder.addColor(new ColorGUIHelper(spotLight, 'color'), 'value').name('Color').onChange(() => spotHelper.update());
+        // spotFolder.add(spotLight.position, 'x', -10, 10).onChange(() => spotHelper.update());
+        // spotFolder.add(spotLight.position, 'z', -10, 20).onChange(() => spotHelper.update());
+        // spotFolder.add(spotLight.position, 'y', 0, 10).onChange(() => spotHelper.update());
+        // spotFolder.add(spotLight.target.position, 'x', -10, 10).onChange(() => spotHelper.update());
+        // spotFolder.add(spotLight.target.position, 'z', -10, 10).onChange(() => spotHelper.update());
+        // spotFolder.add(spotLight.target.position, 'y', 0, 10).onChange(() => spotHelper.update());
 
         // spot GUI
         const spotFolder2 = gui.addFolder('Spot Light 2');
         spotFolder2.add(new DegRadHelper(spotLight2, 'angle'), 'value', 0, 90).name('angle').onChange(() => spotHelper2.update());
         spotFolder2.add(spotLight2, 'penumbra', 0, 1, 0.01).onChange(() => spotHelper2.update());
         spotFolder2.add(spotLight, 'intensity', 0, 1000, 1).onChange(() => spotHelper2.update());
-        spotFolder2.add(spotLight2.position, 'x', -10, 10).onChange(() => spotHelper2.update());
-        spotFolder2.add(spotLight2.position, 'z', -10, 20).onChange(() => spotHelper2.update());
-        spotFolder2.add(spotLight2.position, 'y', 0, 10).onChange(() => spotHelper2.update());
-        spotFolder2.add(spotLight2.target.position, 'x', -10, 10).onChange(() => spotHelper2.update());
-        spotFolder2.add(spotLight2.target.position, 'z', -10, 10).onChange(() => spotHelper2.update());
-        spotFolder2.add(spotLight2.target.position, 'y', 0, 10).onChange(() => spotHelper2.update());
+        spotFolder2.addColor(new ColorGUIHelper(spotLight2, 'color'), 'value').name('Color').onChange(() => spotHelper2.update());
+        // spotFolder2.add(spotLight2.position, 'x', -10, 10).onChange(() => spotHelper2.update());
+        // spotFolder2.add(spotLight2.position, 'z', -10, 20).onChange(() => spotHelper2.update());
+        // spotFolder2.add(spotLight2.position, 'y', 0, 10).onChange(() => spotHelper2.update());
+        // spotFolder2.add(spotLight2.target.position, 'x', -10, 10).onChange(() => spotHelper2.update());
+        // spotFolder2.add(spotLight2.target.position, 'z', -10, 10).onChange(() => spotHelper2.update());
+        // spotFolder2.add(spotLight2.target.position, 'y', 0, 10).onChange(() => spotHelper2.update());
          
-        makeXYZGUI(gui, light.position, 'position', updateLight);
-        makeXYZGUI(gui, light.target.position, 'target', updateLight);
+        // makeXYZGUI(gui, light.position, 'position', updateLight);
+        // makeXYZGUI(gui, light.target.position, 'target', updateLight);
 
 
         // make sure far is always greater than near for near/far planes
@@ -555,6 +787,13 @@
 
                 mtlLoader.load(mtlPath, (mtl) => {
                     mtl.preload();
+
+                    // Iterate over the materials and set each to double-sided
+                    Object.values(mtl.materials).forEach((material) => {
+                        material.side = THREE.DoubleSide;
+                    });
+
+
                     objLoader.setMaterials(mtl);
 
                     objLoader.load(objPath, (root) => {
@@ -615,9 +854,35 @@
         // // render scene
         // renderer.render(scene, camera);
 
+        let currentAsteroids = [];
+        let astSpawnTime;
+        let astSpawnTimeThreshold = 0.5;
+        let maxAsteroids = 40;
+        let asteroidSpeed = 0.1;
+
+        class asteroidStats {
+            constructor(astSpawnTimeThreshold, maxAsteroids, asteroidSpeed){
+                this.astSpawnTimeThreshold = astSpawnTimeThreshold;
+                this.maxAsteroids = maxAsteroids;
+                this.asteroidSpeed = asteroidSpeed;
+            }
+        }
+
+        let asteroidVars = new asteroidStats(astSpawnTimeThreshold, maxAsteroids, asteroidSpeed)
+
+        // asteroids GUI
+        const asteroidFolder = gui.addFolder('Asteroid Spawns');
+        asteroidFolder.add(asteroidVars, 'astSpawnTimeThreshold', 0, 2, 0.01).name('Asteroid Spawn Time');
+        asteroidFolder.add(asteroidVars, 'maxAsteroids', 0, 100).name('Max Asteroids');
+        asteroidFolder.add(asteroidVars, 'asteroidSpeed', 0, 1, 0.1).name('Asteroid Speed');
+
         // Rotating Cube Animation
         function render(time) {
             time *= 0.001;  // convert time to seconds
+
+            if (astSpawnTime === undefined) {
+                astSpawnTime = time;
+            }
             
             // // Set the repeat and offset properties of the background texture
             // // to keep the image's aspect correct.
@@ -649,6 +914,32 @@
                 const rot = time * speed;
                 sun.rotation.x = rot;
                 sun.rotation.y = rot;
+
+            } );
+
+            if (currentAsteroids.length < asteroidVars.maxAsteroids && Math.abs(time - astSpawnTime) >= asteroidVars.astSpawnTimeThreshold){
+                let asteroid = asteroidPool.get();
+                asteroid.mesh.position.set(Math.random() * 40 - 20, Math.random() * 40 - 10, defaultCameraPosition.z - 80);
+                currentAsteroids.push(asteroid);
+                
+                astSpawnTime = time;
+
+                // console.log(currentAsteroids)
+            }
+
+            currentAsteroids.forEach( ( ast, ndx ) => {
+
+                const speed = .2 + ast.rotationSpeed;
+                const rot = time * speed;
+                ast.mesh.rotation.x = rot * ast.rotationX;
+                ast.mesh.rotation.y = rot * ast.rotationX;
+
+                ast.mesh.position.z += asteroidVars.asteroidSpeed;
+
+                if (ast.mesh.position.z > defaultCameraPosition.z + 10){
+                    currentAsteroids.splice(ndx, 1);
+                    asteroidPool.release(ast);
+                }
 
             } );
             
