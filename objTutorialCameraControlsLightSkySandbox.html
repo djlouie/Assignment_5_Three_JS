@@ -74,17 +74,54 @@
         }, 'cameraPos2').name('Camera Position 2');
 
 
-        const audio = new Audio('resources/audio/spaceship-ambience-with-effects-21420.mp3');
+        // Create an AudioListener and add it to the camera
+        const listener = new THREE.AudioListener();
+        camera.add(listener);
 
-        // Play the audio
-        audio.play();
-        audio.volume = 0.5;
-        audio.loop = true;
+        // Create a global audio source
+        const sound = new THREE.Audio(listener);
 
+        // Load the sound
+        const audioLoader = new THREE.AudioLoader();
+        audioLoader.load('resources/audio/spaceship-ambience-with-effects-21420.mp3', function(buffer) {
+            sound.setBuffer(buffer);
+            sound.setLoop(true);
+            sound.setVolume(0.5);
+            sound.play();
+        });
+
+        // Class to store and control the volume
+        class AudioVolume {
+            constructor(vol = 0.5) {
+                this.volume = vol;
+            }
+        }
+
+        let audioVol = new AudioVolume();
+
+        // Create a GUI to control the audio volume
         const audioFolder = gui.addFolder('Audio');
-        
-        // Add a button to reset the camera to default position
-        audioFolder.add(audio, 'volume', 0, 1, 0.1).name('Volume');
+        const volumeControl = audioFolder.add(audioVol, 'volume', 0, 1, 0.1).name('Volume');
+
+        // Update the audio volume when the slider is adjusted
+        volumeControl.onChange((value) => {
+            sound.setVolume(value);
+        });
+
+        // Add a play/pause toggle to the GUI
+        const audioControls = {
+            playing: true,
+            togglePlay: function() {
+                if (this.playing) {
+                    sound.pause();
+                } else {
+                    sound.play();
+                }
+                this.playing = !this.playing;
+            }
+        };
+
+        audioFolder.add(audioControls, 'togglePlay').name('Play/Pause');
 
         // scene plane
         {
@@ -926,6 +963,8 @@
 
                 // console.log(currentAsteroids)
             }
+
+            // audio.volume = audioVol.volume;
 
             currentAsteroids.forEach( ( ast, ndx ) => {
 
