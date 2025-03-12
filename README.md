@@ -14,4 +14,12 @@ Open cockpit design by Niall McCaffrey [CC-BY] via Poly Pizza
 Asteroids
 https://www.texturecan.com/details/136/#google_vignette\
 
+<!-- Tie Fighter by David O'Brien (-BlanK-) [CC-BY] via Poly Pizza -->
+
+Lord Vader starwars X1 tie-fighter 3D Model storque12
+https://free3d.com/3d-model/lord-vader-starwars-x1-tie-fighter-43535.html 
+
+Basic Controls by Joshua Johanson [CC-BY] via Poly Pizza
+
+
 ChatGPT was used in making this

@@ -170,7 +170,7 @@
             torRoughnessMap.repeat.set(10, 1); 
 
             // asteroid material
-            const astMatTor = new THREE.MeshStandardMaterial({
+            const astMatTor = new THREE.MeshPhongMaterial({
                 map: torColorMap,                // Base color map
                 aoMap: torAoMap,                 // Ambient occlusion map
                 displacementMap: torHeightMap,   // Height/Displacement map
@@ -286,15 +286,29 @@
         // const intensity = 1;
         // const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
         // scene.add(light);
-
+        
         // Directional Light
+        const orbitLookAt = new THREE.Vector3( 0, 5, 0 );
+
         const color = 0xFFFFFF;
-        const intensity = 1;
+        const intensity = 0.5;
         const light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(0, 10, 0);
-        light.target.position.set(-5, 0, 0);
+        light.position.set(suns[0].position.x, suns[0].position.y, suns[0].position.z);
+        light.target.position.set(orbitLookAt.x, orbitLookAt.y, orbitLookAt.z);
         scene.add(light);
         scene.add(light.target);
+
+        const dirLight2 = new THREE.DirectionalLight(color, intensity);
+        dirLight2.position.set(suns[1].position.x, suns[1].position.y, suns[1].position.z);
+        dirLight2.target.position.set(orbitLookAt.x, orbitLookAt.y, orbitLookAt.z);
+        scene.add(dirLight2);
+        scene.add(dirLight2.target);
+
+        const dirLight3 = new THREE.DirectionalLight(color, intensity);
+        dirLight3.position.set(suns[2].position.x, suns[2].position.y, suns[2].position.z);
+        dirLight3.target.position.set(orbitLookAt.x, orbitLookAt.y, orbitLookAt.z);
+        scene.add(dirLight3);
+        scene.add(dirLight3.target);
 
         // // Point Light
         // const color = 0xFFFFFF;
@@ -303,18 +317,40 @@
         // light.position.set(0, 10, 0);
         // scene.add(light);
 
-        // // Spot Light
-        // const color = 0xFFFFFF;
-        // const intensity = 150;
-        // const light = new THREE.SpotLight(color, intensity);
-        // scene.add(light);
-        // scene.add(light.target);
+        // Spot Light
+        const spoColor = 0xFFFFFF;
+        const spotIntensity = 500;
+        const spotLight = new THREE.SpotLight(spoColor, spotIntensity);
+        spotLight.position.set(0.66, 7.9, 17.4);
+        spotLight.target.position.set(0.66, 7.9, 0);
+        spotLight.angle = Math.PI / 9;
+        scene.add(spotLight);
+        scene.add(spotLight.target);
+
+        const spotLight2 = new THREE.SpotLight(spoColor, spotIntensity);
+        spotLight2.position.set(-0.58, 7.9, 17.4);
+        spotLight2.target.position.set(-0.58, 7.9, 0);
+        spotLight2.angle = Math.PI / 9;
+        scene.add(spotLight2);
+        scene.add(spotLight2.target);
 
         // // in built helper to visualize light
         const helper = new THREE.DirectionalLightHelper(light);
-        // const helper = new THREE.PointLightHelper(light);
-        // const helper = new THREE.SpotLightHelper(light);
+        const dirHelper1 = new THREE.DirectionalLightHelper(dirLight2);
+        const dirHelper2 = new THREE.DirectionalLightHelper(dirLight3);
+
         scene.add(helper);
+        scene.add(dirHelper1);
+        scene.add(dirHelper2);
+        
+
+        // const helper = new THREE.PointLightHelper(light);
+        const spotHelper = new THREE.SpotLightHelper(spotLight);
+        scene.add(spotHelper);
+
+        const spotHelper2 = new THREE.SpotLightHelper(spotLight2);
+        scene.add(helper);
+        scene.add(spotHelper2);
 
         function makeXYZGUI(gui, vector3, name, onChangeFn) {
             const folder = gui.addFolder(name);
@@ -382,8 +418,28 @@
         // gui.add(light, 'distance', 0, 40).onChange(updateLight);
         
         // spot GUI
-        // gui.add(new DegRadHelper(light, 'angle'), 'value', 0, 90).name('angle').onChange(updateLight);
-        // gui.add(light, 'penumbra', 0, 1, 0.01);
+        const spotFolder = gui.addFolder('Spot Light');
+        spotFolder.add(new DegRadHelper(spotLight, 'angle'), 'value', 0, 90).name('angle').onChange(() => spotHelper.update());
+        spotFolder.add(spotLight, 'penumbra', 0, 1, 0.01).onChange(() => spotHelper.update());
+        spotFolder.add(spotLight, 'intensity', 0, 1000, 1).onChange(() => spotHelper.update());
+        spotFolder.add(spotLight.position, 'x', -10, 10).onChange(() => spotHelper.update());
+        spotFolder.add(spotLight.position, 'z', -10, 20).onChange(() => spotHelper.update());
+        spotFolder.add(spotLight.position, 'y', 0, 10).onChange(() => spotHelper.update());
+        spotFolder.add(spotLight.target.position, 'x', -10, 10).onChange(() => spotHelper.update());
+        spotFolder.add(spotLight.target.position, 'z', -10, 10).onChange(() => spotHelper.update());
+        spotFolder.add(spotLight.target.position, 'y', 0, 10).onChange(() => spotHelper.update());
+
+        // spot GUI
+        const spotFolder2 = gui.addFolder('Spot Light 2');
+        spotFolder2.add(new DegRadHelper(spotLight2, 'angle'), 'value', 0, 90).name('angle').onChange(() => spotHelper2.update());
+        spotFolder2.add(spotLight2, 'penumbra', 0, 1, 0.01).onChange(() => spotHelper2.update());
+        spotFolder2.add(spotLight, 'intensity', 0, 1000, 1).onChange(() => spotHelper2.update());
+        spotFolder2.add(spotLight2.position, 'x', -10, 10).onChange(() => spotHelper2.update());
+        spotFolder2.add(spotLight2.position, 'z', -10, 20).onChange(() => spotHelper2.update());
+        spotFolder2.add(spotLight2.position, 'y', 0, 10).onChange(() => spotHelper2.update());
+        spotFolder2.add(spotLight2.target.position, 'x', -10, 10).onChange(() => spotHelper2.update());
+        spotFolder2.add(spotLight2.target.position, 'z', -10, 10).onChange(() => spotHelper2.update());
+        spotFolder2.add(spotLight2.target.position, 'y', 0, 10).onChange(() => spotHelper2.update());
          
         makeXYZGUI(gui, light.position, 'position', updateLight);
         makeXYZGUI(gui, light.target.position, 'target', updateLight);
@@ -448,7 +504,7 @@
         loadManager.onLoad = () => {
             loadingElem.style.display = 'none';
             const cube = new THREE.Mesh(geometry, materials);
-            cube.position.y = 1;
+            cube.position.y = 5;
             cube.position.x = 2;
             scene.add(cube);
             cubes.push(cube);  // add to our list of cubes to rotate
@@ -479,35 +535,79 @@
             folder.open();
         }
 
-        {
-            mtlLoader.load('resources/models/X-WING/materials.mtl', (mtl) => {
-                mtl.preload();
-                objLoader.setMaterials(mtl);
-                objLoader.load( 'resources/models/X-WING/model.obj', ( root ) => {
-                    root.position.y = 1;
-                    scene.add( root );
-                } );
+        // {
+        //     mtlLoader.load('resources/models/X-WING/materials.mtl', (mtl) => {
+        //         mtl.preload();
+        //         objLoader.setMaterials(mtl);
+        //         objLoader.load( 'resources/models/X-WING/model.obj', ( root ) => {
+        //             root.position.y = 1;
+        //             scene.add( root );
+        //         } );
+        //     });
+        // }
+
+        // Function to load models with their materials
+        function loadModel(mtlPath, objPath, position, rotation, scale, guiLabel) {
+            return new Promise((resolve, reject) => {
+                const mtlLoader = new MTLLoader();
+                const objLoader = new OBJLoader();
+
+                mtlLoader.load(mtlPath, (mtl) => {
+                    mtl.preload();
+                    objLoader.setMaterials(mtl);
+
+                    objLoader.load(objPath, (root) => {
+                        // Apply transformations
+                        if (scale) root.scale.set(scale.x, scale.y, scale.z);
+                        if (rotation) root.rotation.set(rotation.x, rotation.y, rotation.z);
+                        if (position) root.position.set(position.x, position.y, position.z);
+
+                        // Add rotation controls to GUI
+                        makeRotateGUI(gui, root.rotation, guiLabel, () => root.updateMatrix());
+                        scene.add(root);
+                        resolve(root);
+                    }, undefined, (error) => reject(error));
+                }, undefined, (error) => reject(error));
             });
         }
 
-        {
-            mtlLoader.load('resources/models/Open cockpit design/materials.mtl', (mtl) => {
-                mtl.preload();
-                objLoader.setMaterials(mtl);
-                objLoader.load( 'resources/models/Open cockpit design/model.obj', ( root ) => {
-                    root.rotation.y = 2.75;
-                    root.position.set(0, -0.4, 1.5);  
-                    root.position.set(camera.position.x, camera.position.y - 0.4, camera.position.z - 0.5);
-                    makeRotateGUI(gui, root.rotation, 'Cockpit Rotation', () => root.updateMatrix());
-                    // camera.add( root );
-                    scene.add( root )
-                } );
-            });
-        }
+
+        // Load both models
+        Promise.all([
+            loadModel(
+                'resources/models/Open cockpit design/materials.mtl',
+                'resources/models/Open cockpit design/model.obj',
+                new THREE.Vector3(camera.position.x, camera.position.y - 0.5, camera.position.z - 0.5),
+                new THREE.Vector3(0, 2.75, 0),
+                new THREE.Vector3(1, 1, 1),
+                'Cockpit Rotation'
+            ),
+            loadModel(
+                'resources/models/45vadertie/45vadertie.mtl',
+                'resources/models/45vadertie/45vadertie.obj',
+                new THREE.Vector3(camera.position.x, camera.position.y - 0.6, camera.position.z - 1),
+                new THREE.Vector3(0, Math.PI, 0),
+                new THREE.Vector3(0.04, 0.04, 0.04),
+                'Tie Fighter Rotation'
+            )
+        ])
+        .then(([cockpit,tieFighter]) => {
+            console.log('Both models loaded:', { cockpit, tieFighter });
+
+            // Start the render loop AFTER models are added to the scene
+            requestAnimationFrame(render);
+        })
+        .catch((error) => {
+            console.error('Error loading models:', error);
+        });
+
+
+        // add camera to scene for cockpit
+        scene.add(camera)
 
         // controls
         const controls = new OrbitControls(camera, canvas);
-        controls.target.set( 0, 5, 0 );
+        controls.target.set(orbitLookAt.x, orbitLookAt.y, orbitLookAt.z);
 	    controls.update();
 
 
@@ -530,6 +630,8 @@
             
             // bgTexture.offset.y = aspect > 1 ? 0 : (1 - aspect) / 2;
             // bgTexture.repeat.y = aspect > 1 ? 1 : aspect;
+            
+            renderer.render(scene, camera);
 
             cubes.forEach( ( cube, ndx ) => {
 
@@ -548,13 +650,10 @@
                 sun.rotation.y = rot;
 
             } );
-
-            
-            renderer.render(scene, camera);
             
             requestAnimationFrame(render);
         }
-        requestAnimationFrame(render);
+        // requestAnimationFrame(render);
 
     }
 
