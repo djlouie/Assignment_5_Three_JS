@@ -170,7 +170,7 @@
             torRoughnessMap.repeat.set(10, 1); 
 
             // asteroid material
-            const astMatTor = new THREE.MeshPhongMaterial({
+            const astMatTor = new THREE.MeshStandardMaterial ({
                 map: torColorMap,                // Base color map
                 aoMap: torAoMap,                 // Ambient occlusion map
                 displacementMap: torHeightMap,   // Height/Displacement map
@@ -318,7 +318,8 @@
         // scene.add(light);
 
         // Spot Light
-        const spoColor = 0xFFFFFF;
+        // const spoColor = 0xFFFFFF;
+        const spoColor = 0xFF0000
         const spotIntensity = 500;
         const spotLight = new THREE.SpotLight(spoColor, spotIntensity);
         spotLight.position.set(0.66, 7.9, 17.4);
