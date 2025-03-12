@@ -1,0 +1,628 @@
+<script type="importmap">
+    {
+        "imports": {
+            "three": "./build/three.module.js",
+            "three/addons/": "../../examples/jsm/"
+        }
+    }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+
+    function main() {
+        const canvas = document.querySelector('#c')
+        // const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            canvas,
+            alpha: true,
+        });
+
+        // define a scene
+        const scene = new THREE.Scene();
+
+        // add skybox texture to scene
+        const loader = new THREE.TextureLoader();
+        // const bgTexture = loader.load('resources/images/gaia.png');
+        // bgTexture.colorSpace = THREE.SRGBColorSpace;
+        // scene.background = bgTexture
+
+        const texture = loader.load(
+            'resources/images/equirectangularmaps/The_colour_of_the_sky_from_Gaia_s_Early_Data_Release_3_High_Res.png',
+            () => {
+                texture.mapping = THREE.EquirectangularReflectionMapping;
+                texture.colorSpace = THREE.SRGBColorSpace;
+                scene.background = texture;
+            }
+        );
+
+        // set camera constants
+        const fov = 45;
+        const aspect = 2; // the canvas default
+        const near = 0.1;
+        const far = 100;
+        const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+        camera.position.set(0, 10, 20);
+
+        // // set camera z position
+        // camera.position.z = 5;
+        // camera.position.y = 2;
+
+        // scene plane
+        {
+
+            const planeSize = 40;
+
+            // const loader = new THREE.TextureLoader();
+            const texture = loader.load( 'resources/images/checker.png' );
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.magFilter = THREE.NearestFilter;
+            const repeats = planeSize / 2;
+            texture.repeat.set( repeats, repeats );
+
+            const planeGeo = new THREE.PlaneGeometry( planeSize, planeSize );
+            const planeMat = new THREE.MeshPhongMaterial( {
+                map: texture,
+                side: THREE.DoubleSide,
+            } );
+            const mesh = new THREE.Mesh( planeGeo, planeMat );
+            mesh.rotation.x = Math.PI * - .5;
+            scene.add( mesh );
+
+        }
+
+        // make cube and sphere
+        {
+
+            // Load each texture of PBR Material
+            const root_dir = 'resources/images/textureWDepthMap/ground_0010_1k_9fudJm/'
+            const colorMap = loader.load(root_dir + 'ground_0010_color_1k.jpg');
+            const aoMap = loader.load(root_dir + 'ground_0010_ao_1k.jpg');
+            const heightMap = loader.load(root_dir + 'ground_0010_height_1k.png');
+            const normalMap = loader.load(root_dir + 'ground_0010_normal_opengl_1k.png');  // Choose one normal map
+            const roughnessMap = loader.load(root_dir + 'ground_0010_roughness_1k.jpg');
+
+            // Optional: Set color space for color map
+            colorMap.colorSpace = THREE.SRGBColorSpace;
+
+            colorMap.wrapS = THREE.RepeatWrapping;
+            colorMap.wrapT = THREE.RepeatWrapping;
+            colorMap.magFilter = THREE.NearestFilter;
+
+            aoMap.wrapS = THREE.RepeatWrapping;
+            aoMap.wrapT = THREE.RepeatWrapping;
+            aoMap.magFilter = THREE.NearestFilter;
+
+            heightMap.wrapS = THREE.RepeatWrapping;
+            heightMap.wrapT = THREE.RepeatWrapping;
+            heightMap.magFilter = THREE.NearestFilter;
+
+            normalMap.wrapS = THREE.RepeatWrapping;
+            normalMap.wrapT = THREE.RepeatWrapping;
+            normalMap.magFilter = THREE.NearestFilter;
+
+            roughnessMap.wrapS = THREE.RepeatWrapping;
+            roughnessMap.wrapT = THREE.RepeatWrapping;
+            roughnessMap.magFilter = THREE.NearestFilter;
+
+            // asteroid material
+            const astMat = new THREE.MeshStandardMaterial({
+                map: colorMap,                // Base color map
+                aoMap: aoMap,                 // Ambient occlusion map
+                displacementMap: heightMap,   // Height/Displacement map
+                displacementScale: 0.1,       // Controls height intensity
+                displacementBias: -0.05,
+                normalMap: normalMap,         // Normal map (surface details)
+                roughnessMap: roughnessMap,   // Roughness map (glossiness)
+                side: THREE.DoubleSide,       // Optional: Makes material visible on both sides
+            });
+            
+
+            // make cube
+            const cubeSize = 2;
+            const cubeSegments = 10;
+            const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize, cubeSegments, cubeSegments, cubeSegments);
+
+            // Add the uv2 attribute for AO maps
+            cubeGeo.setAttribute('uv2', new THREE.BufferAttribute(cubeGeo.attributes.uv.array, 2));
+
+            const mesh = new THREE.Mesh(cubeGeo, astMat);
+            mesh.position.set(cubeSize + 1, cubeSize / 2, 0);
+            scene.add(mesh);
+
+            // make capsule
+            const capLength = 0.5;
+            const capRedius = 1;
+            const capGeo = new THREE.CapsuleGeometry(capRedius, capLength);
+
+            // Add the uv2 attribute for AO maps
+            capGeo.setAttribute('uv2', new THREE.BufferAttribute(capGeo.attributes.uv.array, 2));
+
+            const capMesh = new THREE.Mesh(capGeo, astMat);
+            capMesh.position.set(0, capLength / 2 + 4, 0);
+            scene.add(capMesh);
+
+            // make torus know
+            const torKnotRadius = 1;
+            const torKnotTube = 0.4;
+            const torKnotGeo = new THREE.TorusKnotGeometry(torKnotRadius, torKnotTube);
+            
+            // Add the uv2 attribute for AO maps
+            torKnotGeo.setAttribute('uv2', new THREE.BufferAttribute(torKnotGeo.attributes.uv.array, 2));
+
+            // torAstMat Adjustments
+            const torColorMap = colorMap.clone();
+            torColorMap.repeat.set(10, 1); 
+            const torAoMap = aoMap.clone();
+            torAoMap.repeat.set(10, 1); 
+            const torHeightMap = heightMap.clone();
+            torHeightMap.repeat.set(10, 1); 
+            const torNormalMap = normalMap.clone();
+            torNormalMap.repeat.set(10, 1); 
+            const torRoughnessMap = roughnessMap.clone();
+            torRoughnessMap.repeat.set(10, 1); 
+
+            // asteroid material
+            const astMatTor = new THREE.MeshStandardMaterial({
+                map: torColorMap,                // Base color map
+                aoMap: torAoMap,                 // Ambient occlusion map
+                displacementMap: torHeightMap,   // Height/Displacement map
+                displacementScale: 0.2,       // Controls height intensity
+                // displacementBias: -0.05,
+                normalMap: torNormalMap,         // Normal map (surface details)
+                roughnessMap: torRoughnessMap,   // Roughness map (glossiness)
+                side: THREE.DoubleSide,       // Optional: Makes material visible on both sides
+            });
+
+            const torKnotMesh = new THREE.Mesh(torKnotGeo, astMatTor);
+            torKnotMesh.position.set(0, torKnotRadius / 2 + 8, 0);
+            scene.add(torKnotMesh);
+
+            // make dodecahedron
+            const dodRad = 1;
+            const dodGeo = new THREE.DodecahedronGeometry(dodRad);
+            const dodMesh = new THREE.Mesh(dodGeo, astMat);
+            dodMesh.position.set(0, dodRad / 2 + 10, 0);
+            scene.add(dodMesh);
+
+
+        }
+
+        const suns = [];
+
+        {
+            const sphereRadius = 10;
+            const sphereWidthDivisions = 32;
+            const sphereHeightDivisions = 16;
+            const sphereGeo = new THREE.SphereGeometry(sphereRadius, sphereWidthDivisions, sphereHeightDivisions);
+            
+            const texture = loader.load( 'resources/images/2k_sun.jpg' );
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.magFilter = THREE.NearestFilter;
+
+            const sphereMat = new THREE.MeshStandardMaterial({
+                map: texture,                // Regular texture
+                emissive: 0xffffff,          // White emissive color to show the full texture as light
+                emissiveMap: texture,        // Use the same texture as emissive
+                emissiveIntensity: 1,        // Adjust intensity as needed
+                side: THREE.DoubleSide,
+            });
+
+            function makeSun(geo, mat, pos){
+                const x = pos[0];
+                const y = pos[1];
+                const z = pos[2];
+
+                const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+                mesh.position.set(x, y, z);
+                scene.add(mesh);
+
+                // point light at the sphere's position
+                const color = 0xffff00;
+                const intensity = 150;
+                const dist = -1;
+                const pointLight = new THREE.PointLight(color, 150, dist);  // Color, intensity, distance
+                pointLight.position.set(mesh.position.x, mesh.position.y, mesh.position.z)
+                scene.add(pointLight);
+
+                // helper
+                const helper = new THREE.PointLightHelper(pointLight, 15);
+                scene.add(helper);
+
+                suns.push(mesh)
+
+            }
+
+            makeSun(sphereGeo, sphereMat, [-sphereRadius + 40, sphereRadius + 20, 0]);
+            makeSun(sphereGeo, sphereMat, [+sphereRadius - 40, sphereRadius + 20, +sphereRadius - 40]);
+            makeSun(sphereGeo, sphereMat, [+sphereRadius - 40, sphereRadius + 20, -sphereRadius + 40]);
+
+
+            // const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+            // mesh.position.set(-sphereRadius + 40, sphereRadius + 20, 0);
+            // scene.add(mesh);
+
+            // // point light at the sphere's position
+            // const color = 0xffff00;
+            // const intensity = 150;
+            // const dist = -1;
+            // const pointLight = new THREE.PointLight(color, 150, dist);  // Color, intensity, distance
+            // pointLight.position.set(mesh.position.x, mesh.position.y, mesh.position.z)
+            // scene.add(pointLight);
+
+            // const light = new THREE.PointLight(0xffffff, 100, -1);
+            // light.position.set(10, 10, 10);
+            // scene.add(light);
+
+
+            // console.log("PointLight Position" + pointLight.position.x + "," + pointLight.position.y + "," + pointLight.position.z)
+        }
+
+        // // Directional Light
+        // const color = 0xFFFFFF;
+        // const intensity = 3;
+        // const light = new THREE.DirectionalLight(color, intensity);
+        // light.position.set(-1, 2, 4);
+        // scene.add(light);
+
+        // ambient light (indirect light)
+        const ambcolor = 0xFFFFFF;
+        const ambIntensity = 0.01;
+        const ambLight = new THREE.AmbientLight(ambcolor, ambIntensity);
+        scene.add(ambLight);
+        
+        // hemisphere light (takes sky and ground color)
+        // const skyColor = 0xB1E1FF;  // light blue
+        // const groundColor = 0xB97A20;  // brownish orange
+        // const intensity = 1;
+        // const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
+        // scene.add(light);
+
+        // Directional Light
+        const color = 0xFFFFFF;
+        const intensity = 1;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(0, 10, 0);
+        light.target.position.set(-5, 0, 0);
+        scene.add(light);
+        scene.add(light.target);
+
+        // // Point Light
+        // const color = 0xFFFFFF;
+        // const intensity = 150;
+        // const light = new THREE.PointLight(color, intensity);
+        // light.position.set(0, 10, 0);
+        // scene.add(light);
+
+        // // Spot Light
+        // const color = 0xFFFFFF;
+        // const intensity = 150;
+        // const light = new THREE.SpotLight(color, intensity);
+        // scene.add(light);
+        // scene.add(light.target);
+
+        // // in built helper to visualize light
+        const helper = new THREE.DirectionalLightHelper(light);
+        // const helper = new THREE.PointLightHelper(light);
+        // const helper = new THREE.SpotLightHelper(light);
+        scene.add(helper);
+
+        function makeXYZGUI(gui, vector3, name, onChangeFn) {
+            const folder = gui.addFolder(name);
+            folder.add(vector3, 'x', -10, 10).onChange(onChangeFn);
+            folder.add(vector3, 'y', 0, 10).onChange(onChangeFn);
+            folder.add(vector3, 'z', -10, 10).onChange(onChangeFn);
+            folder.open();
+        }
+
+        // color GUI Helper
+        class ColorGUIHelper {
+            constructor(object, prop) {
+                this.object = object;
+                this.prop = prop;
+            }
+            get value() {
+                return `#${this.object[this.prop].getHexString()}`;
+            }
+            set value(hexString) {
+                this.object[this.prop].set(hexString);
+            }
+        }
+
+        function updateLight() {
+            // light.target.updateMatrixWorld();
+            helper.update();
+        }
+        // updateLight();
+
+        // Bruh
+        class DegRadHelper {
+            constructor(obj, prop) {
+                this.obj = obj;
+                this.prop = prop;
+            }
+            get value() {
+                return THREE.MathUtils.radToDeg(this.obj[this.prop]);
+            }
+            set value(v) {
+                this.obj[this.prop] = THREE.MathUtils.degToRad(v);
+            }
+        }
+
+        const gui = new GUI();
+
+        // ambient GUI
+        gui.addColor(new ColorGUIHelper(ambLight, 'color'), 'value').name('Ambient Color');
+        gui.add(ambLight, 'intensity', 0, 5, 0.01);
+
+        // hemisphere GUI
+        // gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('skyColor');
+        // gui.addColor(new ColorGUIHelper(light, 'groundColor'), 'value').name('groundColor')
+        // gui.add(light, 'intensity', 0, 5, 0.01);
+
+        // directional GUI
+        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Directional Color');
+        gui.add(light, 'intensity', 0, 5, 0.01);
+        // gui.add(light.target.position, 'x', -10, 10);
+        // gui.add(light.target.position, 'z', -10, 10);
+        // gui.add(light.target.position, 'y', 0, 10);
+
+        // // pointGUI
+        // gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('color');
+        // gui.add(light, 'intensity', 0, 250, 1);
+        // gui.add(light, 'distance', 0, 40).onChange(updateLight);
+        
+        // spot GUI
+        // gui.add(new DegRadHelper(light, 'angle'), 'value', 0, 90).name('angle').onChange(updateLight);
+        // gui.add(light, 'penumbra', 0, 1, 0.01);
+         
+        makeXYZGUI(gui, light.position, 'position', updateLight);
+        makeXYZGUI(gui, light.target.position, 'target', updateLight);
+
+
+        // make sure far is always greater than near for near/far planes
+        class MinMaxGUIHelper {
+            constructor(obj, minProp, maxProp, minDif) {
+                this.obj = obj;
+                this.minProp = minProp;
+                this.maxProp = maxProp;
+                this.minDif = minDif;
+            }
+            get min() {
+                return this.obj[this.minProp];
+            }
+            set min(v) {
+                this.obj[this.minProp] = v;
+                this.obj[this.maxProp] = Math.max(this.obj[this.maxProp], v + this.minDif);
+            }
+            get max() {
+                return this.obj[this.maxProp];
+            }
+            set max(v) {
+                this.obj[this.maxProp] = v;
+                this.min = this.min;  // this will call the min setter
+            }
+        }
+
+        function updateCamera() {
+            camera.updateProjectionMatrix();
+        }
+ 
+        // const gui = new GUI();
+        gui.add(camera, 'fov', 1, 180).onChange(updateCamera);
+        const minMaxGUIHelper = new MinMaxGUIHelper(camera, 'near', 'far', 0.1);
+        gui.add(minMaxGUIHelper, 'min', 0.1, 50, 0.1).name('near').onChange(updateCamera);
+        gui.add(minMaxGUIHelper, 'max', 0.1, 50, 0.1).name('far').onChange(updateCamera);
+
+        // make a box
+        const boxWidth = 1;
+        const boxHeight = 1;
+        const boxDepth = 1;
+        const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+
+        const cubes = []
+
+        const loadManager = new THREE.LoadingManager();
+        // const loader = new THREE.TextureLoader(loadManager);
+        const materials = [
+            new THREE.MeshBasicMaterial({map: loadColorTexture('resources/images/flower-1.jpg')}),
+            new THREE.MeshBasicMaterial({map: loadColorTexture('resources/images/flower-2.jpg')}),
+            new THREE.MeshBasicMaterial({map: loadColorTexture('resources/images/flower-3.jpg')}),
+            new THREE.MeshBasicMaterial({map: loadColorTexture('resources/images/flower-4.jpg')}),
+            new THREE.MeshBasicMaterial({map: loadColorTexture('resources/images/flower-5.jpg')}),
+            new THREE.MeshBasicMaterial({map: loadColorTexture('resources/images/flower-6.jpg')}),
+        ];
+        
+        const loadingElem = document.querySelector('#loading');
+        const progressBarElem = loadingElem.querySelector('.progressbar');
+
+        loadManager.onLoad = () => {
+            loadingElem.style.display = 'none';
+            const cube = new THREE.Mesh(geometry, materials);
+            cube.position.y = 1;
+            cube.position.x = 2;
+            scene.add(cube);
+            cubes.push(cube);  // add to our list of cubes to rotate
+        };
+
+        loadManager.onProgress = (urlOfLastItemLoaded, itemsLoaded, itemsTotal) => {
+            const progress = itemsLoaded / itemsTotal;
+            progressBarElem.style.transform = `scaleX(${progress})`;
+        };
+
+        const cube = new THREE.Mesh(geometry, materials);
+ 
+        function loadColorTexture( path ) {
+            const texture = loader.load( path );
+            texture.colorSpace = THREE.SRGBColorSpace;
+            return texture;
+        }
+
+        const mtlLoader = new MTLLoader();
+        const objLoader = new OBJLoader();
+
+
+        function makeRotateGUI(gui, vector3, name, onChangeFn) {
+            const folder = gui.addFolder(name);
+            folder.add(vector3, 'x', -10, 10).onChange(onChangeFn);
+            folder.add(vector3, 'y', 0, 10).onChange(onChangeFn);
+            folder.add(vector3, 'z', -10, 10).onChange(onChangeFn);
+            folder.open();
+        }
+
+        {
+            mtlLoader.load('resources/models/X-WING/materials.mtl', (mtl) => {
+                mtl.preload();
+                objLoader.setMaterials(mtl);
+                objLoader.load( 'resources/models/X-WING/model.obj', ( root ) => {
+                    root.position.y = 1;
+                    scene.add( root );
+                } );
+            });
+        }
+
+        {
+            mtlLoader.load('resources/models/Open cockpit design/materials.mtl', (mtl) => {
+                mtl.preload();
+                objLoader.setMaterials(mtl);
+                objLoader.load( 'resources/models/Open cockpit design/model.obj', ( root ) => {
+                    root.rotation.y = 2.75;
+                    root.position.set(0, -0.4, 1.5);  
+                    root.position.set(camera.position.x, camera.position.y - 0.4, camera.position.z - 0.5);
+                    makeRotateGUI(gui, root.rotation, 'Cockpit Rotation', () => root.updateMatrix());
+                    // camera.add( root );
+                    scene.add( root )
+                } );
+            });
+        }
+
+        // controls
+        const controls = new OrbitControls(camera, canvas);
+        controls.target.set( 0, 5, 0 );
+	    controls.update();
+
+
+        // // render scene
+        // renderer.render(scene, camera);
+
+        // Rotating Cube Animation
+        function render(time) {
+            time *= 0.001;  // convert time to seconds
+            
+            // // Set the repeat and offset properties of the background texture
+            // // to keep the image's aspect correct.
+            // // Note the image may not have loaded yet.
+            // const canvasAspect = canvas.clientWidth / canvas.clientHeight;
+            // const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1;
+            // const aspect = imageAspect / canvasAspect;
+            
+            // bgTexture.offset.x = aspect > 1 ? (1 - 1 / aspect) / 2 : 0;
+            // bgTexture.repeat.x = aspect > 1 ? 1 / aspect : 1;
+            
+            // bgTexture.offset.y = aspect > 1 ? 0 : (1 - aspect) / 2;
+            // bgTexture.repeat.y = aspect > 1 ? 1 : aspect;
+
+            cubes.forEach( ( cube, ndx ) => {
+
+                const speed = .2 + ndx * .1;
+                const rot = time * speed;
+                cube.rotation.x = rot;
+                cube.rotation.y = rot;
+
+            } );
+
+            suns.forEach( ( sun, ndx ) => {
+
+                const speed = .2 + ndx * .1;
+                const rot = time * speed;
+                sun.rotation.x = rot;
+                sun.rotation.y = rot;
+
+            } );
+
+            
+            renderer.render(scene, camera);
+            
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+
+    }
+
+    main();
+</script>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Three.js - Textured Cube - 6 Textures</title>
+    <style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    #c {
+        width: 100%;
+        height: 100%;
+        display: block;
+        /* background: url(resources/images/gaia.png) no-repeat center center;
+        background-size: cover; */
+    }
+    #loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    #loading .progress {
+        margin: 1.5em;
+        border: 1px solid white;
+        width: 50vw;
+    }
+    #loading .progressbar {
+        margin: 2px;
+        background: white;
+        height: 1em;
+        transform-origin: top left;
+        transform: scaleX(0);
+    }
+    </style>
+
+    <style>
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+        #c {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="c" width="1024" height="575">
+        <div id="loading">
+            <div class="progress"><div class="progressbar"></div></div>
+        </div>
+    </canvas>
+
+    <div class="split">
+        <div id="view1" tabindex="1"></div>
+        <div id="view2" tabindex="2"></div>
+    </div>
+</body>
