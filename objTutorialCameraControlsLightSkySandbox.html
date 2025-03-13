@@ -80,6 +80,7 @@
 
         // Create a global audio source
         const sound = new THREE.Audio(listener);
+        let audioInitialized = false;
 
         // Load the sound
         const audioLoader = new THREE.AudioLoader();
@@ -87,7 +88,7 @@
             sound.setBuffer(buffer);
             sound.setLoop(true);
             sound.setVolume(0.5);
-            sound.play();
+            // Don't autoplay - wait for user interaction
         });
 
         // Class to store and control the volume
@@ -110,18 +111,27 @@
 
         // Add a play/pause toggle to the GUI
         const audioControls = {
-            playing: true,
+            playing: false,
             togglePlay: function() {
-                if (this.playing) {
-                    sound.pause();
+                if (!audioInitialized) {
+                    // Resume AudioContext on first play
+                    listener.context.resume().then(() => {
+                        sound.play();
+                        this.playing = true;
+                        audioInitialized = true;
+                    });
                 } else {
-                    sound.play();
+                    if (this.playing) {
+                        sound.pause();
+                    } else {
+                        sound.play();
+                    }
+                    this.playing = !this.playing;
                 }
-                this.playing = !this.playing;
             }
         };
 
-        audioFolder.add(audioControls, 'togglePlay').name('Play/Pause');
+        audioFolder.add(audioControls, 'togglePlay').name('Click to Start Audio');
 
         // scene plane
         {
