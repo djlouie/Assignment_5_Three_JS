@@ -88,7 +88,26 @@
             sound.setBuffer(buffer);
             sound.setLoop(true);
             sound.setVolume(0.5);
-            // Don't autoplay - wait for user interaction
+            
+            // Setup one-time interaction listener for audio start
+            const startAudio = () => {
+                if (!audioInitialized) {
+                    listener.context.resume().then(() => {
+                        sound.play();
+                        audioControls.playing = true;
+                        audioInitialized = true;
+                    });
+                    // Remove the event listeners once audio is initialized
+                    document.removeEventListener('click', startAudio);
+                    document.removeEventListener('keydown', startAudio);
+                    document.removeEventListener('touchstart', startAudio);
+                }
+            };
+
+            // Add listeners for common user interactions
+            document.addEventListener('click', startAudio);
+            document.addEventListener('keydown', startAudio);
+            document.addEventListener('touchstart', startAudio);
         });
 
         // Class to store and control the volume
@@ -113,25 +132,16 @@
         const audioControls = {
             playing: false,
             togglePlay: function() {
-                if (!audioInitialized) {
-                    // Resume AudioContext on first play
-                    listener.context.resume().then(() => {
-                        sound.play();
-                        this.playing = true;
-                        audioInitialized = true;
-                    });
+                if (this.playing) {
+                    sound.pause();
                 } else {
-                    if (this.playing) {
-                        sound.pause();
-                    } else {
-                        sound.play();
-                    }
-                    this.playing = !this.playing;
+                    sound.play();
                 }
+                this.playing = !this.playing;
             }
         };
 
-        audioFolder.add(audioControls, 'togglePlay').name('Click to Start Audio');
+        audioFolder.add(audioControls, 'togglePlay').name('Play/Pause');
 
         // scene plane
         {
