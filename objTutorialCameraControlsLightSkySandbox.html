@@ -78,6 +78,8 @@
         const listener = new THREE.AudioListener();
         camera.add(listener);
 
+        const audioContext = listener.context;
+
         // Create a global audio source
         const sound = new THREE.Audio(listener);
         let audioInitialized = false;
@@ -128,14 +130,25 @@
             sound.setVolume(value);
         });
 
+        // Create a global audio source
+        const hyperSound = new THREE.Audio(listener);
+
+        // Load the sound
+        const hyperSpeedAudioLoader = new THREE.AudioLoader();
+        hyperSpeedAudioLoader.load('resources/audio/Jump to Lightspeed Effect (Star Wars).mp3', function(buffer) {
+            hyperSound.setBuffer(buffer);
+            hyperSound.setLoop(false);
+            hyperSound.setVolume(0.5);
+        });
+
         // Add a play/pause toggle to the GUI
         const audioControls = {
             playing: false,
             togglePlay: function() {
                 if (this.playing) {
-                    sound.pause();
+                    audioContext.suspend();
                 } else {
-                    sound.play();
+                    audioContext.resume();
                 }
                 this.playing = !this.playing;
             }
@@ -185,13 +198,16 @@
             hyperSpeed: function() {
 
                 if (hyperSpeedBool == false){
-                    sound.pause();
+                    // sound.pause();
                     hyperSpeedBool = true;
-                } else {
-                    camera.fov = fov;
-                    camera.updateProjectionMatrix();
-                    hyperSpeedBool = false;
+                    hyperSound.play()
                 }
+                // } else {
+                //     camera.fov = fov;
+                //     camera.updateProjectionMatrix();
+                //     hyperSpeedBool = false;
+                //     // sound.play();
+                // }
             }
         };
 
@@ -947,6 +963,9 @@
         let maxAsteroids = 40;
         let asteroidSpeed = 0.1;
 
+        let aniTime;
+        let aniTimeReset = true;
+
         class asteroidStats {
             constructor(astSpawnTimeThreshold, maxAsteroids, asteroidSpeed){
                 this.astSpawnTimeThreshold = astSpawnTimeThreshold;
@@ -1032,11 +1051,28 @@
 
             } );
 
+
             console.log(hyperSpeedBool);
 
             if(hyperSpeedBool){
-                camera.fov += 1;
-                camera.updateProjectionMatrix();
+
+                if (camera.fov < 178){
+                    camera.fov += 1;
+                    camera.updateProjectionMatrix();
+                } else if (camera.fov >= 178){
+                    
+                    if (aniTimeReset){
+                        aniTime = time;
+                        aniTimeReset = false
+                    } else {
+                        if (Math.abs(aniTime - time) > 2) {
+                            camera.fov = fov;
+                            camera.updateProjectionMatrix();
+                            hyperSpeedBool = false;
+                            aniTimeReset = true
+                        }
+                    }
+                }
             }
             
             requestAnimationFrame(render);
