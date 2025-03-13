@@ -768,7 +768,8 @@
 
 
         const suns = [];
-
+        let sunHelpers = [];
+        
         {
             const sphereRadius = 10;
             const sphereWidthDivisions = 32;
@@ -809,6 +810,8 @@
                 // helper
                 const helper = new THREE.PointLightHelper(pointLight, 15);
                 scene.add(helper);
+
+                sunHelpers.push(helper);
 
                 suns.push(mesh)
 
@@ -924,6 +927,7 @@
         const spotHelper2 = new THREE.SpotLightHelper(spotLight2);
         scene.add(helper);
         scene.add(spotHelper2);
+        
 
         function makeXYZGUI(gui, vector3, name, onChangeFn) {
             const folder = gui.addFolder(name);
@@ -981,6 +985,40 @@
         // directional GUI
         miscFolder.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Directional Color');
         miscFolder.add(light, 'intensity', 0, 5, 0.01);
+
+
+        // Add a play/pause toggle to the GUI
+        let outlineOn = true;
+        const lightOutlineControls = {
+            toggleLightOutline: function() {
+                if (outlineOn) {
+                    helper.visible = true;
+                    dirHelper1.visible = true;
+                    dirHelper2.visible = true;
+
+                    spotHelper.visible = true;
+                    spotHelper2.visible = true;
+
+                    sunHelpers.forEach( (helper, ndx) => {
+                        helper.visible = true;
+                    });
+                } else {
+                    helper.visible = false;
+                    dirHelper1.visible = false;
+                    dirHelper2.visible = false;
+                    spotHelper.visible = false;
+                    spotHelper2.visible = false;
+
+                    sunHelpers.forEach( (helper, ndx) => {
+                        helper.visible = false;
+                    });
+                }
+                outlineOn = !outlineOn;
+            }
+        };
+
+        miscFolder.add(lightOutlineControls, 'toggleLightOutline').name('Toggle Lighting Outlines');
+
         // gui.add(light.target.position, 'x', -10, 10);
         // gui.add(light.target.position, 'z', -10, 10);
         // gui.add(light.target.position, 'y', 0, 10);
