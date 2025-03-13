@@ -14,7 +14,7 @@ https://www.esa.int/ESA_Multimedia/Images/2020/12/The_colour_of_the_sky_from_Gai
 COCKPIT
 Open cockpit design by Niall McCaffrey [CC-BY] via Poly Pizza 
 
-Asteroids
+Asteroids (PBR CG Textures)
 https://www.texturecan.com/details/136/#google_vignette\
 
 <!-- Tie Fighter by David O'Brien (-BlanK-) [CC-BY] via Poly Pizza -->
