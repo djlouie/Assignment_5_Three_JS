@@ -231,6 +231,12 @@
         let scannerOn = true;
         const billboardControls = {
             billboardControls: function() {
+                if(!scannerOn){
+                    let scanner = new Audio('resources/audio/0824. Scan.mp3');
+                    scanner.volume = 0.8;
+                    scanner.loop = false;
+                    scanner.play();
+                }
                 scannerOn = !scannerOn;
             }
         };
@@ -261,6 +267,8 @@
         const hyperSpeedFolder = gui.addFolder('Hyper Speed');
         hyperSpeedFolder.add(hyperSpeed, 'hyperSpeed').name('HyperSpeed');
 
+        const pickPosition = {x: 0, y: 0};
+        clearPickPosition();
 
         // picker
         class PickHelper {
@@ -270,9 +278,9 @@
                 this.pickedObjectSavedColor = 0;
             }
 
-            pick(normalizedPosition, scene, camera, time) {
+            pick(normalizedPosition, scene, camera, time, asteroidPool) {
                 // restore the color if there is a picked object
-                if (this.pickedObject) {
+                if (this.pickedObject && 'emissive' in this.pickedObject.material) {
                 this.pickedObject.material.emissive.setHex(this.pickedObjectSavedColor);
                 this.pickedObject = undefined;
                 }
@@ -281,16 +289,114 @@
                 this.raycaster.setFromCamera(normalizedPosition, camera);
                 // get the list of objects the ray intersected
                 const intersectedObjects = this.raycaster.intersectObjects(scene.children);
-                if (intersectedObjects.length) {
+                
+                const validObjects = intersectedObjects.filter(obj => 
+                    obj.object.visible && 
+                    obj.object.type !== 'LineSegments' && 
+                    obj.object.type !== 'SpotLightHelper'
+                );
+
+                if (validObjects.length) {
                     // pick the first object. It's the closest one
-                    this.pickedObject = intersectedObjects[0].object;
-                    // save its color
-                    this.pickedObjectSavedColor = this.pickedObject.material.emissive.getHex();
-                    // set its emissive color to flashing red/yellow
-                    this.pickedObject.material.emissive.setHex((time * 8) % 2 > 1 ? 0xFFFF00 : 0xFF0000);
+                    this.pickedObject = validObjects[0].object;
+                    
+                    const isMeshInPool = asteroidPool.pool.some(asteroid => asteroid.mesh === this.pickedObject);
+
+                    if (isMeshInPool){
+                        if ( this.pickedObject && 'emissive' in this.pickedObject.material ) {
+                            this.pickedObjectSavedColor = this.pickedObject.material.emissive.getHex();
+                            // set its emissive color to flashing red/yellow
+                            this.pickedObject.material.emissive.setHex((time * 8) % 2 > 1 ? 0xFFFF00 : 0xFF0000);
+                        } 
+                    }
+
+                }
+            }
+
+            destroyPick(normalizedPosition, scene, camera, time, currentAsteroids, asteroidPool){
+                
+                console.log("Destroy");
+
+                // cast a ray through the frustum
+                this.raycaster.setFromCamera(normalizedPosition, camera);
+                // get the list of objects the ray intersected
+                const intersectedObjects = this.raycaster.intersectObjects(scene.children);
+                
+                const validObjects = intersectedObjects.filter(obj => 
+                    obj.object.visible && 
+                    obj.object.type !== 'LineSegments' && 
+                    obj.object.type !== 'SpotLightHelper'
+                );
+
+                if (validObjects.length) {
+                    // pick the first object. It's the closest one
+                    this.pickedObject = validObjects[0].object;
+                    
+                    console.log(this.pickedObject);
+                    console.log(this.pickedObject.parent);
+
+                    currentAsteroids.forEach( ( ast, ndx ) => {
+
+                        if( ast.mesh == this.pickedObject ){
+
+                            console.log("picked object found");
+
+                            let blaster = new Audio('resources/audio/sci-fi-blaster-199373.mp3');
+                            blaster.volume = 0.8;
+                            blaster.loop = false;
+                            blaster.play();
+                            
+                            // if ( ast in asteroidPool.pool ) {
+                            currentAsteroids.splice(ndx, 1);
+                            asteroidPool.release(ast);
+                            // } 
+                        }
+
+                    } );
+
+
                 }
             }
         }
+
+        function getCanvasRelativePosition(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (event.clientX - rect.left) * canvas.width  / rect.width,
+                y: (event.clientY - rect.top ) * canvas.height / rect.height,
+            };
+        }
+            
+        function setPickPosition(event) {
+            const pos = getCanvasRelativePosition(event);
+            pickPosition.x = (pos.x / canvas.width ) *  2 - 1;
+            pickPosition.y = (pos.y / canvas.height) * -2 + 1;  // note we flip Y
+        }
+            
+        function clearPickPosition() {
+            // unlike the mouse which always has a position
+            // if the user stops touching the screen we want
+            // to stop picking. For now we just pick a value
+            // unlikely to pick something
+            pickPosition.x = -100000;
+            pickPosition.y = -100000;
+        }
+            
+        window.addEventListener('mousemove', setPickPosition);
+        window.addEventListener('mouseout', clearPickPosition);
+        window.addEventListener('mouseleave', clearPickPosition);
+
+        window.addEventListener('touchstart', (event) => {
+            // prevent the window from scrolling
+            event.preventDefault();
+            setPickPosition(event.touches[0]);
+        }, {passive: false});
+        
+        window.addEventListener('touchmove', (event) => {
+            setPickPosition(event.touches[0]); 
+        });
+        
+        window.addEventListener('touchend', clearPickPosition);
 
         // make cube and sphere
         // {
@@ -540,7 +646,7 @@
             // Add the uv2 attribute for AO maps
             cubeGeo.setAttribute('uv2', new THREE.BufferAttribute(cubeGeo.attributes.uv.array, 2));
 
-            var ast = new Asteroid(cubeGeo, astMat, 'Cube');
+            var ast = new Asteroid(cubeGeo, astMat.clone(), 'Cube');
 
             return ast;
         }
@@ -555,7 +661,7 @@
             // Add the uv2 attribute for AO maps
             capGeo.setAttribute('uv2', new THREE.BufferAttribute(capGeo.attributes.uv.array, 2));
 
-            var ast = new Asteroid(capGeo, astMat, 'Capsule');
+            var ast = new Asteroid(capGeo, astMat.clone(), 'Capsule');
 
             return ast;
 
@@ -569,7 +675,7 @@
             // Add the uv2 attribute for AO maps
             dodGeo.setAttribute('uv2', new THREE.BufferAttribute(dodGeo.attributes.uv.array, 2));
             
-            var ast = new Asteroid(dodGeo, astMat, 'Dodecahedron');
+            var ast = new Asteroid(dodGeo, astMat.clone(), 'Dodecahedron');
 
             return ast;
         }
@@ -1115,6 +1221,16 @@
         asteroidFolder.add(asteroidVars, 'maxAsteroids', 0, 100).name('Max Asteroids');
         asteroidFolder.add(asteroidVars, 'asteroidSpeed', 0, 1, 0.1).name('Asteroid Speed');
 
+        // picker helper
+        const pickHelper = new PickHelper();
+        let destroyPickBool = true;
+
+        function destroyPickOn() {
+            destroyPickBool = true;
+        }
+
+        window.addEventListener('click', destroyPickOn);
+
         // Rotating Cube Animation
         function render(time) {
             time *= 0.001;  // convert time to seconds
@@ -1156,6 +1272,14 @@
 
             } );
 
+            // picker
+            pickHelper.pick(pickPosition, scene, camera, time, asteroidPool);
+
+            if (destroyPickBool){
+                pickHelper.destroyPick(pickPosition, scene, camera, time, currentAsteroids, asteroidPool);
+                destroyPickBool = false;
+            }
+
             if (currentAsteroids.length < asteroidVars.maxAsteroids && Math.abs(time - astSpawnTime) >= asteroidVars.astSpawnTimeThreshold){
                 let asteroid = asteroidPool.get();
                 // asteroid.root.position.set(0, 0, 0);
@@ -1164,7 +1288,7 @@
                 
                 astSpawnTime = time;
 
-                console.log(currentAsteroids)
+                // console.log(currentAsteroids)
             }
 
             // audio.volume = audioVol.volume;
@@ -1224,7 +1348,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Three.js - Textured Cube - 6 Textures</title>
+    <title>Three.js - Asteroid Field :D</title>
     <style>
     html, body {
         height: 100%;

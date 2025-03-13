@@ -37,4 +37,11 @@ Sound Effect by <a href="https://pixabay.com/users/placidplace-25572496/?utm_sou
 HyperSpeed Sound Effect
 https://www.youtube.com/watch?v=Gm5ZiEzW8ps 
 
+Blaster
+Sound Effect by <a href="https://pixabay.com/users/singularitysmarauder-40737470/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=199373">SingularitysMarauder</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=199373">Pixabay</a>
+
+Scanner
+Lethal Company (Version 68) All SFX (Windows) (gamerip) (2023)
+https://downloads.khinsider.com/game-soundtracks/album/lethal-company-version-40-ambience-music-windows-gamerip-2023/0824.%2520Scan.mp3 
+
 ChatGPT was used in making this
