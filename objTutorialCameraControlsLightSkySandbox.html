@@ -169,15 +169,34 @@
             // Add visibility toggle to GUI
             const planeControls = {
                 visible: false,
-                toggleVisibility: function() {
+                planeControls: function() {
                     this.visible = !this.visible;
                     mesh.visible = this.visible;
                 }
             };
 
             const planeFolder = gui.addFolder('Ground Plane');
-            planeFolder.add(planeControls, 'toggleVisibility').name('Toggle Plane');
+            planeFolder.add(planeControls, 'planeControls').name('Toggle Plane');
         }
+
+        let hyperSpeedBool = false;
+        // Add visibility toggle to GUI
+        const hyperSpeed = {
+            hyperSpeed: function() {
+
+                if (hyperSpeedBool == false){
+                    sound.pause();
+                    hyperSpeedBool = true;
+                } else {
+                    camera.fov = fov;
+                    camera.updateProjectionMatrix();
+                    hyperSpeedBool = false;
+                }
+            }
+        };
+
+        const hyperSpeedFolder = gui.addFolder('Hyper Speed');
+        hyperSpeedFolder.add(hyperSpeed, 'hyperSpeed').name('HyperSpeed');
 
         // make cube and sphere
         // {
@@ -1012,6 +1031,13 @@
                 }
 
             } );
+
+            console.log(hyperSpeedBool);
+
+            if(hyperSpeedBool){
+                camera.fov += 1;
+                camera.updateProjectionMatrix();
+            }
             
             requestAnimationFrame(render);
         }
