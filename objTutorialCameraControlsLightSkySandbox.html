@@ -70,6 +70,7 @@
         cameraFolder.add({
             cameraPos2: function() {
                 camera.position.set(defaultCameraPosition.x, defaultCameraPosition.y, defaultCameraPosition.z - 1);
+                camera.lookAt(orbitLookAt.x, orbitLookAt.y, orbitLookAt.z);
             }
         }, 'cameraPos2').name('Camera Position 2');
 
@@ -193,8 +194,6 @@
         }
 
         // black fog
-
-        
         class FogGUIHelper {
             constructor(fog) {
                 this.fog = fog;
@@ -228,6 +227,16 @@
             fogFolder.addColor(scene.fog, 'color');
         }
 
+        // Billboard Toggle
+        let scannerOn = true;
+        const billboardControls = {
+            billboardControls: function() {
+                scannerOn = !scannerOn;
+            }
+        };
+
+        const billboardFolder = gui.addFolder('Billboard');
+        billboardFolder.add(billboardControls, 'billboardControls').name('Toggle Scanner');
 
 
         let hyperSpeedBool = false;
@@ -251,6 +260,37 @@
 
         const hyperSpeedFolder = gui.addFolder('Hyper Speed');
         hyperSpeedFolder.add(hyperSpeed, 'hyperSpeed').name('HyperSpeed');
+
+
+        // picker
+        class PickHelper {
+            constructor() {
+                this.raycaster = new THREE.Raycaster();
+                this.pickedObject = null;
+                this.pickedObjectSavedColor = 0;
+            }
+
+            pick(normalizedPosition, scene, camera, time) {
+                // restore the color if there is a picked object
+                if (this.pickedObject) {
+                this.pickedObject.material.emissive.setHex(this.pickedObjectSavedColor);
+                this.pickedObject = undefined;
+                }
+            
+                // cast a ray through the frustum
+                this.raycaster.setFromCamera(normalizedPosition, camera);
+                // get the list of objects the ray intersected
+                const intersectedObjects = this.raycaster.intersectObjects(scene.children);
+                if (intersectedObjects.length) {
+                    // pick the first object. It's the closest one
+                    this.pickedObject = intersectedObjects[0].object;
+                    // save its color
+                    this.pickedObjectSavedColor = this.pickedObject.material.emissive.getHex();
+                    // set its emissive color to flashing red/yellow
+                    this.pickedObject.material.emissive.setHex((time * 8) % 2 > 1 ? 0xFFFF00 : 0xFF0000);
+                }
+            }
+        }
 
         // make cube and sphere
         // {
@@ -368,6 +408,31 @@
 
         // }
 
+        function makeLabelCanvas(size, name) {
+            const borderSize = 2;
+            const ctx = document.createElement('canvas').getContext('2d');
+            const font =  `${size}px bold sans-serif`;
+            ctx.font = font;
+            // measure how long the name will be
+            const doubleBorderSize = borderSize * 2;
+            const width = ctx.measureText(name).width + doubleBorderSize;
+            const height = size + doubleBorderSize;
+            ctx.canvas.width = width;
+            ctx.canvas.height = height;
+            
+            // need to set font again after resizing canvas
+            ctx.font = font;
+            ctx.textBaseline = 'top';
+            
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = 'white';
+            ctx.fillText(name, borderSize, borderSize);
+            
+            return ctx.canvas;
+        }
+
+        const labelGeometry = new THREE.PlaneGeometry(1, 1);
 
         class Asteroid{
             constructor(geometry, material, type){
@@ -377,8 +442,38 @@
                 this.rotationY =  Math.random() < 0.5 ? 1 : -1;
                 this.rotationSpeed = Math.random() + 0.1;
                 this.type = type;
+
+                // make asteroid
                 this.mesh = new THREE.Mesh(this.geometry, this.material);
                 scene.add(this.mesh);
+
+                // make label
+                const size = 32;
+                const canvas = makeLabelCanvas(32, this.type);
+                const texture = new THREE.CanvasTexture(canvas);
+                // because our canvas is likely not a power of 2
+                // in both dimensions set the filtering appropriately.
+                texture.minFilter = THREE.LinearFilter;
+                texture.wrapS = THREE.ClampToEdgeWrapping;
+                texture.wrapT = THREE.ClampToEdgeWrapping;
+                
+                const labelMaterial = new THREE.SpriteMaterial({
+                    map: texture,
+                    transparent: true,
+                });
+
+                const labelBaseScale = 0.04;
+                this.label = new THREE.Sprite(labelMaterial);
+                this.label.position.y = this.mesh.position.y + 2.5;
+                this.label.scale.x = canvas.width  * labelBaseScale;
+                this.label.scale.y = canvas.height * labelBaseScale;
+                
+                // add to root
+                this.root = new THREE.Object3D();
+                this.root.add(this.label);
+                this.root.add(this.mesh);
+                scene.add(this.root);
+                
             }
 
             // render(){
@@ -407,7 +502,7 @@
                 for (let i = 0; i < this.createFns.length; i++){
                     for (let j = 0; j < size; j++){
                         const obj = createFns[i](this.mat);
-                        obj.mesh.visible = false;
+                        obj.root.visible = false;
                         this.pool.push(obj);
                     }
                 }
@@ -418,21 +513,21 @@
 
             get() {
                 for (const obj of this.pool) {
-                    if (!obj.mesh.visible) {
-                        obj.mesh.visible = true;
+                    if (!obj.root.visible) {
+                        obj.root.visible = true;
                         return obj;
                     }
                 }
 
                 const randomIndex = Math.floor(Math.random() * this.createFns.length);
                 const newObj = this.createFns[randomIndex](this.mat);
-                newObj.mesh.visible = true;
+                newObj.root.visible = true;
                 this.pool.push(newObj);
                 return newObj;
             }
 
             release(obj){
-                obj.mesh.visible = false;
+                obj.root.visible = false;
             }
         }
 
@@ -1063,12 +1158,13 @@
 
             if (currentAsteroids.length < asteroidVars.maxAsteroids && Math.abs(time - astSpawnTime) >= asteroidVars.astSpawnTimeThreshold){
                 let asteroid = asteroidPool.get();
-                asteroid.mesh.position.set(Math.random() * 40 - 20, Math.random() * 40 - 10, defaultCameraPosition.z - 100);
+                // asteroid.root.position.set(0, 0, 0);
+                asteroid.root.position.set(Math.random() * 50 - 25, Math.random() * 40 - 10, defaultCameraPosition.z - 100);
                 currentAsteroids.push(asteroid);
                 
                 astSpawnTime = time;
 
-                // console.log(currentAsteroids)
+                console.log(currentAsteroids)
             }
 
             // audio.volume = audioVol.volume;
@@ -1077,14 +1173,20 @@
 
                 const speed = .2 + ast.rotationSpeed;
                 const rot = time * speed;
-                ast.mesh.rotation.x = rot * ast.rotationX;
-                ast.mesh.rotation.y = rot * ast.rotationX;
+                ast.root.rotation.x = rot * ast.rotationX;
+                ast.root.rotation.y = rot * ast.rotationY;
 
-                ast.mesh.position.z += asteroidVars.asteroidSpeed;
+                ast.root.position.z += asteroidVars.asteroidSpeed;
 
-                if (ast.mesh.position.z > defaultCameraPosition.z + 10){
+                if (ast.root.position.z > defaultCameraPosition.z + 10){
                     currentAsteroids.splice(ndx, 1);
                     asteroidPool.release(ast);
+                }
+
+                if(scannerOn){
+                    ast.label.visible = true;
+                } else {
+                    ast.label.visible = false;
                 }
 
             } );

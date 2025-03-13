@@ -1,9 +1,17 @@
 Link To HTML:
 https://djlouie.github.io/Assignment_5_Three_JS/objTutorialCameraControlsLightSkySandbox.html 
 
-Following This Basics Tutorial
+Following These Basics Tutorial
 
-https://threejs.org/manual/#en/fundamentals
+* https://threejs.org/manual/#en/fundamentals
+* https://threejs.org/manual/#en/textures 
+* https://threejs.org/manual/#en/load-obj 
+* https://threejs.org/manual/#en/cameras
+* https://threejs.org/manual/#en/lights
+* https://threejs.org/manual/#en/backgrounds
+* https://threejs.org/manual/#en/fog
+* https://threejs.org/manual/#en/billboards
+* https://threejs.org/manual/#en/picking
 
 X-Wing Model
 X-WING by Eric Finn [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/4ktJXymF3VZ)
