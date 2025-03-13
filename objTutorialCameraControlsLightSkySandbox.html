@@ -145,7 +145,6 @@
 
         // scene plane
         {
-
             const planeSize = 40;
 
             // const loader = new THREE.TextureLoader();
@@ -164,8 +163,20 @@
             } );
             const mesh = new THREE.Mesh( planeGeo, planeMat );
             mesh.rotation.x = Math.PI * - .5;
+            mesh.visible = false;
             scene.add( mesh );
 
+            // Add visibility toggle to GUI
+            const planeControls = {
+                visible: false,
+                toggleVisibility: function() {
+                    this.visible = !this.visible;
+                    mesh.visible = this.visible;
+                }
+            };
+
+            const planeFolder = gui.addFolder('Ground Plane');
+            planeFolder.add(planeControls, 'toggleVisibility').name('Toggle Plane');
         }
 
         // make cube and sphere
