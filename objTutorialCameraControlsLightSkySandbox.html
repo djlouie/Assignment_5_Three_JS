@@ -192,6 +192,44 @@
             planeFolder.add(planeControls, 'planeControls').name('Toggle Plane');
         }
 
+        // black fog
+
+        
+        class FogGUIHelper {
+            constructor(fog) {
+                this.fog = fog;
+            }
+            get near() {
+                return this.fog.near;
+            }
+            set near(v) {
+                this.fog.near = v;
+                this.fog.far = Math.max(this.fog.far, v);
+            }
+            get far() {
+                return this.fog.far;
+            }
+            set far(v) {
+                this.fog.far = v;
+                this.fog.near = Math.min(this.fog.near, v);
+            }
+        }
+
+        {
+            const color = 0x000000;  // black
+            const near = 50;
+            const far = 100;
+            scene.fog = new THREE.Fog(color, near, far);
+
+            const fogGUIHelper = new FogGUIHelper(scene.fog);
+            const fogFolder = gui.addFolder('Fog');
+            fogFolder.add(fogGUIHelper, 'near', near, far).listen();
+            fogFolder.add(fogGUIHelper, 'far', near, far).listen();
+            fogFolder.addColor(scene.fog, 'color');
+        }
+
+
+
         let hyperSpeedBool = false;
         // Add visibility toggle to GUI
         const hyperSpeed = {
@@ -624,7 +662,7 @@
         const orbitLookAt = new THREE.Vector3( 0, 5, 0 );
 
         const color = 0x87CEEB; //0xFFFFFF;
-        const intensity = 0.2;
+        const intensity = 1;
         const light = new THREE.DirectionalLight(color, intensity);
         light.position.set(suns[0].position.x, suns[0].position.y, suns[0].position.z);
         light.target.position.set(orbitLookAt.x, orbitLookAt.y, orbitLookAt.z);
@@ -1025,7 +1063,7 @@
 
             if (currentAsteroids.length < asteroidVars.maxAsteroids && Math.abs(time - astSpawnTime) >= asteroidVars.astSpawnTimeThreshold){
                 let asteroid = asteroidPool.get();
-                asteroid.mesh.position.set(Math.random() * 40 - 20, Math.random() * 40 - 10, defaultCameraPosition.z - 80);
+                asteroid.mesh.position.set(Math.random() * 40 - 20, Math.random() * 40 - 10, defaultCameraPosition.z - 100);
                 currentAsteroids.push(asteroid);
                 
                 astSpawnTime = time;
@@ -1050,9 +1088,6 @@
                 }
 
             } );
-
-
-            console.log(hyperSpeedBool);
 
             if(hyperSpeedBool){
 
