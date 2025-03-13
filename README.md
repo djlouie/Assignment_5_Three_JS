@@ -23,6 +23,7 @@ Following These Basics Tutorial
 * The "scanner" using billboards is toggleable w/ Lethal Co. ref sound effect
 * You can destroy asteroids by clicking using pickers
 * You can adjust fog color and area (default black)
+* Toggle Light Outlines On and Off
 
 X-Wing Model
 X-WING by Eric Finn [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/4ktJXymF3VZ)

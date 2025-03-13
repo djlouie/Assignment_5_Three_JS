@@ -769,7 +769,7 @@
 
         const suns = [];
         let sunHelpers = [];
-        
+
         {
             const sphereRadius = 10;
             const sphereWidthDivisions = 32;
@@ -992,25 +992,25 @@
         const lightOutlineControls = {
             toggleLightOutline: function() {
                 if (outlineOn) {
-                    helper.visible = true;
-                    dirHelper1.visible = true;
-                    dirHelper2.visible = true;
-
-                    spotHelper.visible = true;
-                    spotHelper2.visible = true;
-
-                    sunHelpers.forEach( (helper, ndx) => {
-                        helper.visible = true;
-                    });
-                } else {
                     helper.visible = false;
                     dirHelper1.visible = false;
                     dirHelper2.visible = false;
+
                     spotHelper.visible = false;
                     spotHelper2.visible = false;
 
                     sunHelpers.forEach( (helper, ndx) => {
                         helper.visible = false;
+                    });
+                } else {
+                    helper.visible = true;
+                    dirHelper1.visible = true;
+                    dirHelper2.visible = true;
+                    spotHelper.visible = true;
+                    spotHelper2.visible = true;
+
+                    sunHelpers.forEach( (helper, ndx) => {
+                        helper.visible = true;
                     });
                 }
                 outlineOn = !outlineOn;
