@@ -1,3 +1,5 @@
+# Asteroid Field :D
+
 Link To HTML:
 https://djlouie.github.io/Assignment_5_Three_JS/objTutorialCameraControlsLightSkySandbox.html 
 
@@ -12,6 +14,15 @@ Following These Basics Tutorial
 * https://threejs.org/manual/#en/fog
 * https://threejs.org/manual/#en/billboards
 * https://threejs.org/manual/#en/picking
+
+## Features
+* 2 camera positions: 1 for cockpit and 2 for window viewing
+* Hyperspeed Animation
+* You can change the colors of the spotlights on the space ship
+* You can edit time between asteroid spaws, asteroid speed, and max asteroids
+* The "scanner" using billboards is toggleable w/ Lethal Co. ref sound effect
+* You can destroy asteroids by clicking using pickers
+* You can adjust fog color and area (default black)
 
 X-Wing Model
 X-WING by Eric Finn [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/4ktJXymF3VZ)
